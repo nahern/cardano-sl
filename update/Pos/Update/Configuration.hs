@@ -24,13 +24,14 @@ import qualified Data.Text as T
 import           Distribution.System (buildArch, buildOS)
 import           Language.Haskell.TH (runIO)
 import qualified Language.Haskell.TH.Syntax as TH (lift)
-import           Serokell.Util.ANSI  (Color (Red, Blue), colorize)
+import           Serokell.Util.ANSI (Color (Blue, Red), colorize)
 
 -- For FromJSON instances.
 import           Pos.Aeson.Core ()
 import           Pos.Aeson.Update ()
 import           Pos.Core (ApplicationName, BlockVersion (..), SoftwareVersion (..))
-import           Pos.Core.Update (SystemTag (..), archHelper, osHelper, checkSystemTag)
+import           Pos.Core.Update (SystemTag (..), archHelper, osHelper)
+import           Pos.Util.Verification (runPVerify)
 
 ----------------------------------------------------------------------------
 -- Config itself
@@ -90,9 +91,9 @@ curSoftwareVersion = SoftwareVersion ourAppName (ccApplicationVersion updateConf
 currentSystemTag :: SystemTag
 currentSystemTag =
     $(do let tag :: SystemTag
-             tag = SystemTag (toText (osHelper buildOS ++ archHelper buildArch))
+             tag = UnsafeSystemTag $ toText (osHelper buildOS ++ archHelper buildArch)
              st :: Either Text ()
-             st = checkSystemTag tag
+             st = first show $ runPVerify tag
              color c s = "\n" <> colorize c s <> "\n"
          case st of Left e -> error . color Red . T.concat $
                                   ["Current system tag could not be calculated: ", e]

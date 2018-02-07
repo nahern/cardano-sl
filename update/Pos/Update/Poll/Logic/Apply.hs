@@ -1,4 +1,3 @@
-
 -- | Logic of application and verification of data in Poll.
 
 module Pos.Update.Poll.Logic.Apply
@@ -7,7 +6,7 @@ module Pos.Update.Poll.Logic.Apply
        , verifyAndApplyVoteDo
        ) where
 
-import           Control.Monad.Except (MonadError, throwError, runExceptT)
+import           Control.Monad.Except (MonadError, throwError)
 import qualified Data.HashSet as HS
 import           Data.List (partition)
 import qualified Data.List.NonEmpty as NE
@@ -22,8 +21,7 @@ import           Pos.Core (ChainDifficulty (..), Coin, EpochIndex, HeaderHash, I
                            headerHashG, headerSlotL, sumCoins, unflattenSlotId, unsafeIntegerToCoin)
 import           Pos.Core.Configuration (HasConfiguration, blkSecurityParam)
 import           Pos.Core.Update (BlockVersionData (..), UpId, UpdatePayload (..),
-                                  UpdateProposal (..), UpdateVote (..), bvdUpdateProposalThd,
-                                  checkUpdatePayload)
+                                  UpdateProposal (..), UpdateVote (..), bvdUpdateProposalThd)
 import           Pos.Crypto (hash, shortHashF)
 import           Pos.Data.Attributes (areAttributesKnown)
 import           Pos.Update.Poll.Class (MonadPoll (..), MonadPollRead (..))
@@ -37,6 +35,7 @@ import           Pos.Update.Poll.Types (ConfirmedProposalState (..), DecidedProp
                                         DpsExtra (..), ProposalState (..),
                                         UndecidedProposalState (..), UpsExtra (..), psProposal)
 import           Pos.Util.Some (Some (..))
+import           Pos.Util.Verification (runPVerify)
 
 type ApplyMode m =
     ( MonadError PollVerFailure m
@@ -63,7 +62,7 @@ verifyAndApplyUSPayload
     => Bool -> Either SlotId (Some IsMainHeader) -> UpdatePayload -> m ()
 verifyAndApplyUSPayload verifyAllIsKnown slotOrHeader upp@UpdatePayload {..} = do
     -- First of all, we verify data.
-    either (throwError . PollInvalidUpdatePayload) pure =<< runExceptT (checkUpdatePayload upp)
+    either (throwError . PollInvalidUpdatePayload . show) pure $ runPVerify upp
     whenRight slotOrHeader verifyHeader
     -- Then we split all votes into groups. One group consists of
     -- votes for proposal from payload. Each other group consists of
