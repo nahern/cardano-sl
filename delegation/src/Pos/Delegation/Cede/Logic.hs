@@ -21,11 +21,12 @@ import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
 import           Formatting (build, sformat, (%))
 
-import           Pos.Core (EpochIndex, ProxySKHeavy, StakeholderId, addressHash, gbhConsensus)
+import           Pos.Core (EpochIndex, HeavyDlgIndex (..), ProxySKHeavy, StakeholderId, addressHash,
+                           gbhConsensus)
 import           Pos.Core.Block (BlockSignature (..), MainBlockHeader, mainHeaderLeaderKey,
                                  mcdSignature)
-import           Pos.Crypto (ProxySecretKey (..), PublicKey, psigPsk,
-                             HasCryptoConfiguration, validateProxySecretKey)
+import           Pos.Crypto (HasCryptoConfiguration, ProxySecretKey (..), PublicKey, psigPsk,
+                             validateProxySecretKey)
 import           Pos.DB (DBError (DBMalformed))
 import           Pos.Delegation.Cede.Class (MonadCedeRead (..), getPskPk)
 import           Pos.Delegation.Helpers (isRevokePsk)
@@ -214,7 +215,7 @@ dlgVerifyPskHeavy richmen (CheckForCycle checkCycle) tipEpoch psk = do
             psk
 
     -- Internal PSK epoch should match current tip epoch.
-    unless (tipEpoch == pskOmega psk) $
+    unless (tipEpoch == getHeavyDlgIndex (pskOmega psk)) $
         throwError $ sformat
             ("PSK "%build%" has epoch which is different from tip epoch "%build)
             psk tipEpoch

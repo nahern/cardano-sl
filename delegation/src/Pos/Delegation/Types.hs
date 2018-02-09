@@ -23,7 +23,7 @@ import           Pos.Crypto (PublicKey)
 
 -- | Undo for the delegation component.
 data DlgUndo = DlgUndo
-    { duPsks            :: ![ProxySKHeavy]
+    { duPsks            :: !(Set ProxySKHeavy)
       -- ^ PSKs we've modified when applying the block (by deleting or
       -- overwriting).
     , duPrevEpochPosted :: !(HashSet StakeholderId)
