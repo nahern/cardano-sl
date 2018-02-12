@@ -1,6 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE RecordWildCards  #-}
 
 import           Universum
 
@@ -10,26 +9,15 @@ import           Criterion.Main
 import           Data.ByteString (ByteString)
 import qualified Data.ByteString as BS
 import qualified Data.ByteString.Lazy as LBS
-import           Formatting (sformat, build, shown)
+import           Formatting (build, sformat, shown)
 import           System.Environment (lookupEnv)
 
 import           Pos.Arbitrary.Block.Generate (generateBlock)
 import           Pos.Binary.Class (Bi, serialize, unsafeDeserialize)
-import qualified Pos.Block.BHelpers as Verify
-import           Pos.Core.Common (SharedSeed (..), CoinPortion)
+import qualified Pos.Block.Verification as Verify
+import           Pos.Core.Common (CoinPortion, SharedSeed (..))
 import           Pos.Core.Configuration
 import           Pos.Core.Genesis
-import           Pos.Core (Block, BlockHeader, MainBlock, MainBlockHeader,
-                           BlockVersionData (..), SoftforkRule (..),
-                           EpochIndex (..), CoinPortion (..), unsafeCoinPortionFromDouble,
-                           Timestamp (..), TxFeePolicy (..), TxPayload (..),
-                           SscPayload, DlgPayload, UpdatePayload,
-                           MainBlockchain, BodyProof, ConsensusData,
-                           ExtraHeaderData, ExtraBodyData, Body,
-                           _gbBody, _gbHeader, _gbExtra, _mbTxPayload,
-                           _mbSscPayload, _mbDlgPayload, _mbUpdatePayload,
-                           _gbhBodyProof, _gbhConsensus, _gbhExtra)
-import           Pos.Core.Block.Main ()
 import           Pos.Crypto (ProtocolMagic (..))
 
 -- We need configurations in order to get Arbitrary and Bi instances for
@@ -246,8 +234,8 @@ main = withCoreConfigurations cc confDir (Just (Timestamp 0)) Nothing $ do
   seedStr <- lookupEnv "SEED"
   let size = case fmap reads sizeStr of
           Just [(size',"")] -> size'
-          _ -> 4
+          _                 -> 4
       seed = case fmap reads seedStr of
           Just [(seed',"")] -> seed'
-          _ -> 42
+          _                 -> 42
   benchMain seed size
